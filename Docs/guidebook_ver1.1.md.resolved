@@ -1,0 +1,97 @@
+# 👨‍🍳 S14P21D107: 팀 개발 핸드북 (v1.1)
+
+6명의 팀원이 일관성 있게 개발하기 위해 반드시 숙지해야 할 폴더 구조 및 개발 규칙입니다.
+
+---
+
+## 📂 1. 폴더 구조 규칙 (Assets/_Project)
+
+모든 팀 작업물은 `Assets/_Project` 하위에만 생성합니다. 외부 에셋(`Plugins`, `PublicAssets`)은 함부로 수정하지 않습니다.
+
+S14P21D107/ (Project Root)
+├── .gitignore                  # Library/, Temp/, Obj/ 제외
+├── README.md                   # 프로젝트 개요 및 실행 방법
+├── Docs/                       # 📋 기획서, 가이드북, 회의록
+└── Assets/
+    ├── Plugins/                # 외부 패키지 (수정 금지!)
+    │    ├── Photon/            # Photon Fusion SDK
+    │    └── ...
+    └── _Project/               # ✅ 팀 작업물 메인 루트 (Main)
+         ├── Art/
+         │    ├── Animations/   # .anim, .controller
+         │    ├── Materials/    # .mat
+         │    ├── Models/       # .fbx 3D 모델
+         │    ├── Shaders/      # .shader, .shadergraph
+         │    └── Textures/     # .png, .tga
+         ├── Audio/
+         │    ├── BGM/          # 배경 음악
+         │    └── SFX/          # 인게임 효과음
+         ├── Data/              # ScriptableObject 설정 데이터
+         ├── Prefabs/           # 📦 모든 오브젝트는 프리팹으로 관리
+         │    ├── Characters/   # CookingMaster, RecipeMaster
+         │    ├── Ingredients/  # 각종 조리 재료
+         │    ├── Stations/     # 가마솥, 도마 등 고정 장치
+         │    └── UI/           # 인게임 HUD, 팝업
+         ├── Scenes/
+         │    ├── Boot.unity    # 앱 초기화 및 시작 씬
+         │    ├── Lobby.unity   # 대기실 씬
+         │    ├── Kitchen.unity # 메인 인게임 씬
+         │    └── WorkInProgress/ # 개인 테스트용 씬 공간
+         ├── Scripts/           # 💻 모든 C# 코드 (기능별 관리)
+         │    ├── Network/      # Launcher, Spawner (Fusion 관련)
+         │    ├── Player/       # 조작, 카메라, 핸드 핸들러
+         │    ├── Interactions/ # 아이템(Items), 장치(Stations) 상호작용
+         │    ├── Managers/     # 게임 로직(Round, Timer, Order)
+         │    └── UI/           # 스크립트 기반 UI 제어
+         └── Settings/          # InputActions, 렌더 파이프라인 설정
+```
+
+---
+
+## 🚀 2. 멀티플레이어 개발 표준 (Photon Fusion)
+
+우리 팀은 **'Hybrid MonoBehaviour'** 방식을 사용하여 유연성과 동기화 안정성을 동시에 확보합니다.
+
+### 🆔 NetworkObject 프리팹 (가장 중요!)
+모든 멀티플레이 동기화 대상은 반드시 `NetworkObject`여야 합니다. 
+
+1.  **NetworkObject의 역할**: 이 오브젝트가 네트워크상에서 "누구"인지 알려주는 신분증입니다. 이게 없으면 `Runner.Spawn`으로 소환할 수 없습니다.
+2.  **구성 필수 요소**:
+    *   **NetworkObject 컴포넌트**: 프리팹의 **최상위(Root)**에 위치해야 합니다.
+    *   **NetworkTransform / NetworkRigidbody**: 위치나 물리 상태를 동기화하고 싶을 때 추가합니다. (Interpolation 설정 권장)
+3.  **생성 규칙**:
+    *   **프리팹 라벨링**: 인스펙터 하단 **Labels**에 `FusionPrefab` 태그를 추가해야 검색 속도가 빨라집니다.
+    *   **Prefab Table 갱신**: 프리팹 수정 후 상단 메뉴 `Fusion > Rebuild Prefab Table`을 꼭 실행하세요.
+4.  **주의사항 (Bad Case)**:
+    *   ❌ 자식 오브젝트에 `NetworkObject`를 넣지 마세요. (반드시 루트에!)
+    *   ❌ 일반 `Instantiate`로 소환하지 마세요. (반드시 `Runner.Spawn` 사용!)
+
+### 🔐 권한 체크 (Authority)
+플레이어 조작 관련 모든 로직은 반드시 권한 확인 후 실행합니다.
+```csharp
+private NetworkObject _networkObject;
+void Start() { _networkObject = GetComponentInParent<NetworkObject>(); }
+void Update() {
+    if (_networkObject.HasStateAuthority == false) return; // 내 캐릭터가 아니면 조작 방지
+}
+```
+
+---
+
+## 🛠️ 3. 상호작용 및 아이템 시스템 구현 규칙
+
+새로운 아이템이나 조리 기구를 추가할 때 지켜야 할 체크리스트입니다.
+
+1.  **레이어(Layer) 설정**: 줍거나 조작할 수 있는 모든 오브젝트는 레이어를 **`Interactable`**로 설정합니다.
+2.  **컴포넌트 구성**:
+    *   **집을 수 있는 아이템**: [PickableItem](file:///c:/Users/SOYEON/Desktop/thpjt/S14P21D107/Assets/_Project/Scripts/Interactions/Items/PickableItem.cs#3-170) 스크립트 + `Rigidbody` + `Collider`
+    *   **고정 조리 기구**: `Stations` 하위 스크립트 + `Collider` (IsTrigger 여부 확인)
+3.  **Hands Manager**: 요리사의 물체 줍기 로직은 [CookingMasterHandsManager](file:///c:/Users/SOYEON/Desktop/thpjt/S14P21D107/Assets/_Project/Scripts/Player/CookingMaster/CookingMasterHandsManager.cs#7-342)를 통해 이루어집니다. 시선 방향(Raycast)을 이용하므로 프리팹 중심점에 Collider가 정확히 맞는지 확인하십시오.
+
+---
+
+## 📋 4. 협업 및 커밋 규칙
+
+*   **PascalCase**: 폴더명과 스크립트 파일명은 반드시 파스칼 케이스를 사용합니다.
+*   **Meta 파일 엄수**: [.meta](file:///c:/Users/SOYEON/Desktop/thpjt/S14P21D107/Assets/Fonts.meta) 파일이 누락되면 하이어라키 연결이 깨집니다. 커밋 시 항상 확인하십시오.
+*   **개인 테스트 씬**: 개인적인 테스트는 `Scenes/WorkInProgress` 폴더 내에 `이름_기능.unity` 형식으로 만들어 개발하고, 메인 씬(`Kitchen`)은 가급적 충돌이 없도록 신중히 수정합니다.

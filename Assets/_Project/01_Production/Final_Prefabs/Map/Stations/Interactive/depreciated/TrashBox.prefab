@@ -1,0 +1,110 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1001 &6203383653789051926
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: -4216859302048453862, guid: 329f97c15d558c04981cec6f3d2cac5a, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 123.2896
+      objectReference: {fileID: 0}
+    - target: {fileID: -4216859302048453862, guid: 329f97c15d558c04981cec6f3d2cac5a, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0.00000003045693
+      objectReference: {fileID: 0}
+    - target: {fileID: -4216859302048453862, guid: 329f97c15d558c04981cec6f3d2cac5a, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -1.3166159
+      objectReference: {fileID: 0}
+    - target: {fileID: -4216859302048453862, guid: 329f97c15d558c04981cec6f3d2cac5a, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -4216859302048453862, guid: 329f97c15d558c04981cec6f3d2cac5a, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -4216859302048453862, guid: 329f97c15d558c04981cec6f3d2cac5a, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -4216859302048453862, guid: 329f97c15d558c04981cec6f3d2cac5a, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -4216859302048453862, guid: 329f97c15d558c04981cec6f3d2cac5a, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -4216859302048453862, guid: 329f97c15d558c04981cec6f3d2cac5a, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -4216859302048453862, guid: 329f97c15d558c04981cec6f3d2cac5a, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -2416733968201007103, guid: 329f97c15d558c04981cec6f3d2cac5a, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 0face13fdba49094f96e086359e61c30, type: 2}
+    - target: {fileID: -927199367670048503, guid: 329f97c15d558c04981cec6f3d2cac5a, type: 3}
+      propertyPath: m_Name
+      value: TrashBox
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: -927199367670048503, guid: 329f97c15d558c04981cec6f3d2cac5a, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 7538665906908225287}
+    - targetCorrespondingSourceObject: {fileID: -927199367670048503, guid: 329f97c15d558c04981cec6f3d2cac5a, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: -6930125819798248161}
+  m_SourcePrefab: {fileID: 100100000, guid: 329f97c15d558c04981cec6f3d2cac5a, type: 3}
+--- !u!1 &2681670955440338207 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: -927199367670048503, guid: 329f97c15d558c04981cec6f3d2cac5a, type: 3}
+  m_PrefabInstance: {fileID: 6203383653789051926}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &7538665906908225287
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2681670955440338207}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: -1552182283, guid: e725a070cec140c4caffb81624c8c787, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Fusion.Runtime.dll::Fusion.NetworkObject
+  SortKey: 2452360097
+  ObjectInterest: 1
+  Flags: 262145
+  NestedObjects: []
+  NetworkedBehaviours:
+  - {fileID: -6930125819798248161}
+  ForceRemoteRenderTimeframe: 0
+--- !u!114 &-6930125819798248161
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2681670955440338207}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 158639473, guid: e725a070cec140c4caffb81624c8c787, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Fusion.Runtime.dll::Fusion.NetworkTransform
+  _stateAuthorityChangeErrorCorrectionDelta: 0
+  SyncScale: 0
+  SyncParent: 0
+  _autoAOIOverride: 1
+  DisableSharedModeInterpolation: 0
