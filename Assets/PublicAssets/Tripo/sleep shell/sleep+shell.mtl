@@ -1,0 +1,16 @@
+# File produced by Tripo
+
+newmtl tripo_material_e2955a9b-da25-4a50-8e74-2d79ae021e09
+Kd 1.00000000 1.00000000 1.00000000
+Ke 0.00000000 0.00000000 0.00000000
+d 1.00000000
+Ns 10.00000477
+illum 2
+map_Kd sleep+shell_basecolor.jpg
+
+newmtl $Material_1
+Kd 1.00000000 1.00000000 1.00000000
+Ke 0.00000000 0.00000000 0.00000000
+d 1.00000000
+illum 1
+

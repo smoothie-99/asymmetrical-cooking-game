@@ -1,0 +1,10 @@
+# File produced by Tripo
+
+newmtl tripo_material_56e574dc-a5e9-4ad4-ad0d-36cb26bfa75b
+Kd 1.00000000 1.00000000 1.00000000
+Ke 0.00000000 0.00000000 0.00000000
+d 1.00000000
+Ns 10.00000477
+illum 2
+map_Kd mushroom_slice_basecolor.jpg
+

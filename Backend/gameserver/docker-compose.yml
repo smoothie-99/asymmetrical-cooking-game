@@ -1,0 +1,43 @@
+services:
+  db:
+    image: postgres:16
+    container_name: gamedb
+    ports:
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_DB: ${DB_DATABASE}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - ./postgres_data:/var/lib/postgresql/data
+
+  app:
+    build: .
+    container_name: spring_app
+    ports:
+      - "8107:8080"
+    depends_on:
+      - db
+    env_file:
+      - .env
+    environment:
+      # DB URL 설정 (컨테이너 간 통신을 위해 유지)
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/${DB_DATABASE}
+      SPRING_DATASOURCE_USERNAME: ${DB_USER}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
+
+
+
+  jenkins:
+    image: jenkins/jenkins:lts
+    container_name: jenkins
+    restart: always
+    user: root
+    ports:
+      - "8108:8080"
+    environment:
+      - JENKINS_OPTS=--prefix=/jenkins
+    volumes:
+      - /home/ubuntu/jenkins_home:/var/jenkins_home
+      - /var/run/docker.sock:/var/run/docker.sock

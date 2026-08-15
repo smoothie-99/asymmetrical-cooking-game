@@ -1,0 +1,184 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &2273071626058829796
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 789835541000154656}
+  m_Layer: 0
+  m_Name: GameObject
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &789835541000154656
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2273071626058829796}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0.08717229, y: 0.8995905, z: -0.21045253, w: -0.37262273}
+  m_LocalPosition: {x: 16.855768, y: 8.592266, z: 10.581567}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 4494238023048665559}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &2787462860853936009
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2340784967537923676}
+  m_Layer: 0
+  m_Name: GameObject
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2340784967537923676
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2787462860853936009}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0.08717229, y: 0.8995905, z: -0.21045253, w: -0.37262273}
+  m_LocalPosition: {x: 16.855768, y: 8.592266, z: 10.581567}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 4494238023048665559}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &6633423188114358772
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4494238023048665559}
+  - component: {fileID: 7323248839891152058}
+  - component: {fileID: 2641091800073827594}
+  m_Layer: 0
+  m_Name: P3_Map_System
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &4494238023048665559
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6633423188114358772}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -3.06293, y: -0, z: -3.45179}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 2340784967537923676}
+  - {fileID: 789835541000154656}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &7323248839891152058
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6633423188114358772}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 67e4e9e340a72aa4a97f8108a27c5010, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MapGenerator
+  _SyncedMapData:
+    _length: 0
+    _data:
+      Data: 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+  useRandomSeed: 1
+  _currentSeed: 0
+  width: 12
+  height: 12
+  floorPrefab: {fileID: 8015857139679853437, guid: ee72f7ba298509b4aa8ab17071c18218, type: 3}
+  floorMargin: 4
+  wallPrefab: {fileID: 4963292048353799176, guid: 6e34a8bcfed31e24687d1f0249e9aaa1, type: 3}
+  ceilingPrefab: {fileID: 3444265884780238786, guid: d36cc18ac6e67cc449859165b6ffdc87, type: 3}
+  wallHeight: 5
+  cornerPrefab: {fileID: 2690940899099981910, guid: 7391791fcf4f68f419c4c84c05448481, type: 3}
+  drainPrefab: {fileID: 3972228578526455301, guid: 7424fb471a3fcf8498cfa3eae41bb979, type: 3}
+  drainHeight: 0.25
+  hookNetworkPrefab:
+    RawGuidValue: 6d740c34f6936cd4ea4f92e31de15528
+  candlePrefab: {fileID: 9001840789240294407, guid: d8e4bd9c91e69d149ac9dc2aaacff874, type: 3}
+  headsetHeight: 3
+  candleHeight: 3
+  globalSpawnHeight: 0.5
+  generalPrefab: {fileID: -4626643531966095499, guid: 08d0fc998574de6498233351f01d28f7, type: 3}
+  cuttingBoardPrefab: {fileID: -6372807004399077956, guid: dbec848ce51aac6409a0d0b263191181, type: 3}
+  fireplacePrefab: {fileID: 4503044298834760286, guid: 55783dee1b16d734c96f430363bd8da0, type: 3}
+  slimePrefab: {fileID: 5724054137615167014, guid: 8faa475cd8b6ef6418281f1e3727534f, type: 3}
+  submissionPrefab: {fileID: -7732500954604683170, guid: 9ae1134ce65e3f74da257d13be16ba60, type: 3}
+  trashBinPrefab: {fileID: -5025260307911092605, guid: 8d1846e3a5416654a8a8ad02d463597d, type: 3}
+  potPrefab: {fileID: -2006663156016703593, guid: 949ec85d1c491994f813a70d10bfc2a7, type: 3}
+  submissionRecipeRequirement: {fileID: 0}
+  submissionGuestData: {fileID: 0}
+  tomatoBoxPrefab: {fileID: 5594152697150306839, guid: 466d19a0f12a71943a55a485d28c4946, type: 3}
+  clamBoxPrefab: {fileID: -6646913027418979074, guid: 33a23a7a099431e45b77378da83d0527, type: 3}
+  noodleBoxPrefab: {fileID: -6597986847324901047, guid: bea0f809afa7b074689154bbc383c700, type: 3}
+  mandragoraBoxPrefab: {fileID: 2288147003554913442, guid: 733068aeb2874624abe4bc8ddc7fbf89, type: 3}
+  cabbageBoxPrefab: {fileID: 469049923502192690, guid: 75e87ce157e2e514a8110822e7fe4256, type: 3}
+  cheeseBoxPrefab: {fileID: 3899310550209729221, guid: 272f8e2da6b43e24899a40552ab5d188, type: 3}
+  baconBoxPrefab: {fileID: 5771524104526803039, guid: 7601ed8f220629a4b89879f6b65d6cde, type: 3}
+  eggBoxPrefab: {fileID: 4620963229851429956, guid: d445adaf7f29cad4d875c2eaa354099a, type: 3}
+  mushroomBoxPrefab: {fileID: 1163728274970702963, guid: ada137ee43f71fc4eb3616a27e667efd, type: 3}
+  pumpkinBoxPrefab: {fileID: 9163794609485057643, guid: 58a2dad76401def42836cbfd018d5690, type: 3}
+  onionBoxPrefab: {fileID: 5209585463499205125, guid: e956143082d8a944d8107eeb1f521727, type: 3}
+  fishBoxPrefab: {fileID: 5422595852403262383, guid: 16066c5c406b44a4aa0c87198d951b26, type: 3}
+  meatBoxPrefab: {fileID: 4857881441294362404, guid: 94f780bb235e77246a46e2a457433256, type: 3}
+  doughBoxPrefab: {fileID: 669795589751709763, guid: 75241e2a90e276c4c9bf9e70dd4230a0, type: 3}
+  ingredientBoxPrefab: {fileID: 8173414782324408268, guid: 33a0ec58825e3fd45a3adecfa4f5454d, type: 3}
+  toolPrefabs:
+  - {fileID: 3795112135151958428, guid: b1d58641f570e45489adb25db9dc1e02, type: 3}
+  - {fileID: 2577256693851135403, guid: 4723cdb37695e994dad4353abe14aabb, type: 3}
+  - {fileID: 93521594880883798, guid: 206ee700bf8cbca4ea64a20157fe811b, type: 3}
+  - {fileID: 667140633210233188, guid: feea4bb7b3cfea54dbc15c78c8b1c9a5, type: 3}
+  - {fileID: 64725635899083529, guid: 2390fda8b78875e41bc457f30b14a2e9, type: 3}
+  - {fileID: 526554023508755418, guid: ec993c42ff7bf174b8b3556ed1c44c1f, type: 3}
+  specialItemPrefabs: []
+--- !u!114 &2641091800073827594
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6633423188114358772}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: -1552182283, guid: e725a070cec140c4caffb81624c8c787, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Fusion.Runtime.dll::Fusion.NetworkObject
+  SortKey: 3227465473
+  ObjectInterest: 1
+  Flags: 262145
+  NestedObjects: []
+  NetworkedBehaviours:
+  - {fileID: 7323248839891152058}
+  ForceRemoteRenderTimeframe: 0

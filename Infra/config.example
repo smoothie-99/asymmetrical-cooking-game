@@ -1,0 +1,4 @@
+    Host ssafy-server
+    HostName [서버 주소 입력 (예: j14d107.p.ssafy.io)]
+    User ubuntu
+    IdentityFile [본인 PC의 .pem 키 전체 경로 입력]

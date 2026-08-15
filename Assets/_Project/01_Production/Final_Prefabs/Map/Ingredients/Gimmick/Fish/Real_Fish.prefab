@@ -1,0 +1,176 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1001 &1149028311838363441
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: -8679921383154817045, guid: c0a327966163cca419309f3cb25a6b96, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 104.634705
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: c0a327966163cca419309f3cb25a6b96, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: -85.02558
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: c0a327966163cca419309f3cb25a6b96, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 126.66194
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: c0a327966163cca419309f3cb25a6b96, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: -0.7071068
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: c0a327966163cca419309f3cb25a6b96, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0.7071068
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: c0a327966163cca419309f3cb25a6b96, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: c0a327966163cca419309f3cb25a6b96, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: c0a327966163cca419309f3cb25a6b96, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 270
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: c0a327966163cca419309f3cb25a6b96, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: c0a327966163cca419309f3cb25a6b96, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: c0a327966163cca419309f3cb25a6b96, type: 3}
+      propertyPath: m_Name
+      value: Real_Fish
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: c0a327966163cca419309f3cb25a6b96, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: -4408074824467414789}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: c0a327966163cca419309f3cb25a6b96, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: -1411141274306694946}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: c0a327966163cca419309f3cb25a6b96, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: -4675086901260724372}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: c0a327966163cca419309f3cb25a6b96, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 5992698261557190721}
+  m_SourcePrefab: {fileID: 100100000, guid: c0a327966163cca419309f3cb25a6b96, type: 3}
+--- !u!1 &230601641260429920 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: c0a327966163cca419309f3cb25a6b96, type: 3}
+  m_PrefabInstance: {fileID: 1149028311838363441}
+  m_PrefabAsset: {fileID: 0}
+--- !u!54 &-4408074824467414789
+Rigidbody:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 230601641260429920}
+  serializedVersion: 5
+  m_Mass: 1
+  m_LinearDamping: 0
+  m_AngularDamping: 0.05
+  m_CenterOfMass: {x: 0, y: 0, z: 0}
+  m_InertiaTensor: {x: 1, y: 1, z: 1}
+  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ImplicitCom: 1
+  m_ImplicitTensor: 1
+  m_UseGravity: 1
+  m_IsKinematic: 0
+  m_Interpolate: 0
+  m_Constraints: 0
+  m_CollisionDetection: 0
+--- !u!114 &-1411141274306694946
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 230601641260429920}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: -1552182283, guid: e725a070cec140c4caffb81624c8c787, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Fusion.Runtime.dll::Fusion.NetworkObject
+  SortKey: 3716293226
+  ObjectInterest: 1
+  Flags: 262145
+  NestedObjects: []
+  NetworkedBehaviours:
+  - {fileID: 5992698261557190721}
+  ForceRemoteRenderTimeframe: 0
+--- !u!65 &-4675086901260724372
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 230601641260429920}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.4468689, y: 1.0000002, z: 0.41256723}
+  m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &5992698261557190721
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 230601641260429920}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c89589c9933f94d49a2d2398ec0ba792, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PhantomFishTargetItem
+  itemName: "\uD658\uC601 \uBB3C\uACE0\uAE30"
+  _State: 0
+  _HolderId:
+    Raw: 0
+  _StationId:
+    Raw: 0
+  _HeldHandIndex: 0
+  _WorldPosition: {x: 0, y: 0, z: 0}
+  guideSelectRadius: 80
+  cookingSeq: []
+  cookTime: 0
+  knifeGuidelineConfigs:
+  - localPosition: {x: 0, y: 0, z: 0}
+    localEulerAngles: {x: 0, y: 0, z: 0}
+    cutName: 
+    resultPrefabs:
+    - {fileID: -9143712548836472206, guid: d2207acb4e7077d469f2a0acb74b23a2, type: 3}
+    resultCounts: 01000000
+  startsAsFake: 0
+  preparedFishPrefab: {fileID: -9143712548836472206, guid: d2207acb4e7077d469f2a0acb74b23a2, type: 3}
+  vanishEffectPrefab: {fileID: 6634001725989195780, guid: 0684609a4edb1a54b82681de4bbeca80, type: 3}

@@ -1,0 +1,10 @@
+# File produced by Tripo
+
+newmtl tripo_material_b169e469-e06b-4ef4-a3a1-26426c1153a8
+Kd 1.00000000 1.00000000 1.00000000
+Ke 0.00000000 0.00000000 0.00000000
+d 1.00000000
+Ns 10.00000477
+illum 2
+map_Kd mandrake+grass_basecolor.jpg
+

@@ -1,0 +1,16 @@
+# File produced by Tripo
+
+newmtl tripo_material_d8c10fdf-246e-49b0-b934-837115cb71e3
+Kd 1.00000000 1.00000000 1.00000000
+Ke 0.00000000 0.00000000 0.00000000
+d 1.00000000
+Ns 10.00000477
+illum 2
+map_Kd shell+meat_basecolor.jpg
+
+newmtl $Material_1
+Kd 1.00000000 1.00000000 1.00000000
+Ke 0.00000000 0.00000000 0.00000000
+d 1.00000000
+illum 1
+
