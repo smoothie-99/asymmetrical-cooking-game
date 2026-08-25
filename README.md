@@ -63,6 +63,19 @@ docker compose -f docker-compose.test.yml down
 `build/reports/jacoco/test/html/index.html`에서 확인할 수 있습니다. GitHub Actions에서도 같은 테스트와
 커버리지 측정을 자동으로 수행합니다.
 
+배포된 서버의 기록 저장 성능은 [k6](https://grafana.com/docs/k6/latest/set-up/install-k6/)로 측정할 수 있습니다.
+테스트 계정은 1번 스테이지가 해금되어 있어야 하며, 운영 데이터와 분리된 스테이징 환경에서 실행하세요.
+
+```bash
+cd Backend/gameserver
+BASE_URL=https://staging.example.com \
+ACCESS_TOKEN=테스트_계정의_Access_Token \
+k6 run performance/game-result.js
+```
+
+기본 조건은 동시 사용자 50명, 1분이며 오류율 1% 미만, 성공 검사 99% 초과,
+p95 응답시간 1초 미만을 목표로 설정했습니다. 실제 측정 결과를 확인한 뒤 서비스 환경에 맞게 기준을 조정합니다.
+
 ### 배포
 
 - `Backend/gameserver/deploy.sh`: 이미지 빌드, Compose 갱신, Health Check 수행
