@@ -18,6 +18,9 @@ jobs:
         working-directory: Backend/gameserver
     steps:
       - uses: actions/checkout@v4
+        with:
+          sparse-checkout: Backend/gameserver
+          sparse-checkout-cone-mode: true
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
