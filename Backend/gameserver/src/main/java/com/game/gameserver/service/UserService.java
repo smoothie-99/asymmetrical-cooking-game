@@ -25,8 +25,8 @@ import lombok.RequiredArgsConstructor;
 public class UserService {
 
     private final UserRepository userRepository;
-    private final UserDishRepository userDishRespository;
-    private final DishRepository dishRepository; // 추가
+    private final UserDishRepository userDishRepository;
+    private final DishRepository dishRepository;
     private final PasswordEncoder passwordEncoder;
 
     public UserResponse getMyInfo(String loginId) {
@@ -71,7 +71,7 @@ public class UserService {
         Users user = userRepository.findByLoginId(loginId)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
-        return userDishRespository.findByUser(user).stream()
+        return userDishRepository.findByUser(user).stream()
                 .map(ud -> UserDishResponse.builder()
                         .dishName(ud.getDish().getName())
                         .stage(ud.getDish().getStage())
@@ -83,33 +83,33 @@ public class UserService {
 
     @Transactional
     public void saveDishResult(String loginId, Integer stage, Integer achievementLevel) {
-        Users user = userRepository.findByLoginId(loginId)
+        validateAchievementLevel(achievementLevel);
+
+        // UserDish가 아직 없는 최초 저장도 동시 요청으로부터 보호하기 위해
+        // 자식 행 조회 전에 부모인 사용자 행을 잠근다.
+        Users user = userRepository.findByLoginIdForUpdate(loginId)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
         Dish dish = dishRepository.findByStage(stage)
                 .orElseThrow(() -> new IllegalArgumentException("해당 스테이지의 요리를 찾을 수 없습니다."));
 
-        // 기존 기록 원자적 확인 및 업데이트
-        userDishRespository.findByUser(user).stream()
-                .filter(ud -> ud.getDish().getId().equals(dish.getId()))
-                .findFirst()
-                .ifPresentOrElse(
-                        existing -> {
-                            // 더 높은 등급일 때만 업데이트 (Fail < Clear < Perfect)
-                            if (achievementLevel > existing.getAchievementLevel()) {
-                                existing.setAchievementLevel(achievementLevel);
-                            }
-                        },
-                        () -> {
-                            // 신규 기록 생성
-                            UserDish newRecord = UserDish.builder()
-                                    .user(user)
-                                    .dish(dish)
-                                    .achievementLevel(achievementLevel)
-                                    .build();
-                            userDishRespository.save(newRecord);
-                        }
-                );
+        userDishRepository.findByUserAndDish(user, dish)
+                .ifPresentOrElse(existing -> {
+                    // 낮은 등급의 재전송으로 기존 최고 기록이 내려가지 않도록 한다.
+                    if (achievementLevel > existing.getAchievementLevel()) {
+                        existing.setAchievementLevel(achievementLevel);
+                    }
+                }, () -> userDishRepository.save(UserDish.builder()
+                        .user(user)
+                        .dish(dish)
+                        .achievementLevel(achievementLevel)
+                        .build()));
+    }
+
+    private void validateAchievementLevel(Integer achievementLevel) {
+        if (achievementLevel == null || achievementLevel < 0 || achievementLevel > 2) {
+            throw new IllegalArgumentException("달성 등급은 0(FAIL), 1(CLEAR), 2(PERFECT) 중 하나여야 합니다.");
+        }
     }
 
     @Transactional
@@ -148,7 +148,7 @@ public class UserService {
         Users user = userRepository.findByLoginId(loginId)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
-        userDishRespository.deleteByUser(user);
+        userDishRepository.deleteByUser(user);
 
         userRepository.delete(user);
     }
