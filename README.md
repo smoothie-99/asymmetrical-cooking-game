@@ -48,6 +48,21 @@ https://your-domain.example/api
 - Refresh Token은 서버 DB에 원문 대신 SHA-256 해시로 저장하며 갱신할 때마다 회전
 - Unity 클라이언트는 토큰을 `PlayerPrefs`가 아닌 현재 프로세스 메모리에만 보관
 
+### 백엔드 테스트
+
+통합 테스트는 PostgreSQL의 비관적 락과 Flyway 마이그레이션까지 실제 환경과 동일하게 확인합니다.
+
+```bash
+cd Backend/gameserver
+docker compose -f docker-compose.test.yml up -d --wait
+./gradlew clean test jacocoTestReport
+docker compose -f docker-compose.test.yml down
+```
+
+테스트 결과는 `build/reports/tests/test/index.html`, 커버리지는
+`build/reports/jacoco/test/html/index.html`에서 확인할 수 있습니다. GitHub Actions에서도 같은 테스트와
+커버리지 측정을 자동으로 수행합니다.
+
 ### 배포
 
 - `Backend/gameserver/deploy.sh`: 이미지 빌드, Compose 갱신, Health Check 수행
