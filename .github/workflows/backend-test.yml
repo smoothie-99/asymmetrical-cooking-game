@@ -48,3 +48,7 @@ jobs:
           cache-dependency-path: Backend/gameserver/*.gradle*
       - name: Run backend tests
         run: ./gradlew test --no-daemon
+      - name: Print failed test details
+        if: failure()
+        run: |
+          find build/test-results/test -name "TEST-*.xml" -type f -print -exec sed -n '/<failure/,/<\/failure>/p' {} \;
