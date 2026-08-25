@@ -45,6 +45,7 @@ jobs:
           JWT_SECRET: ci-only-secret-key-that-is-longer-than-32-characters
         run: ./gradlew clean test bootJar --no-daemon
       - name: Print coverage summary
+        if: success()
         run: >-
           awk -F, 'NR > 1 { missed += $4; covered += $5 }
           END { total = missed + covered;
@@ -52,7 +53,15 @@ jobs:
           total ? covered * 100 / total : 0, covered, total }'
           build/reports/jacoco/test/jacocoTestReport.csv
       - name: Upload coverage report
+        if: success()
         uses: actions/upload-artifact@v4
         with:
           name: backend-jacoco-report
           path: Backend/gameserver/build/reports/jacoco/test/
+      - name: Upload test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-test-report
+          path: Backend/gameserver/build/reports/tests/test/
+          if-no-files-found: ignore
