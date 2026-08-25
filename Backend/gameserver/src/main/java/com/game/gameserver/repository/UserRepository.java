@@ -23,6 +23,7 @@ public interface UserRepository extends JpaRepository<Users, Long> {
     
     boolean existsByLoginId(String loginId);
     boolean existsByEmail(String email);
+    boolean existsByEmailIgnoreCase(String email);
     boolean existsByNickname(String nickname);
 
 }

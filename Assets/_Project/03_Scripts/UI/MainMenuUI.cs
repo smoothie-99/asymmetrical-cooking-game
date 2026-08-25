@@ -125,12 +125,12 @@ public class MainMenuUI : MonoBehaviour
             if (loginPasswordInput != null) loginPasswordInput.Select();
         }
 
-        // [아이디 설정] 6~12자 제한 및 검증 연결
+        // [아이디 설정] 6~10자 제한 및 검증 연결
         if (signupIDInput != null)
         {
             signupIDInput.onValidateInput = ValidateIDInput;
             signupIDInput.onValueChanged.AddListener(OnIDValueChanged);
-            signupIDInput.characterLimit = 12;
+            signupIDInput.characterLimit = 10;
         }
 
         // [비밀번호 설정] 8~20자 제한 및 실시간 일치 확인 이벤트 연결
@@ -170,6 +170,7 @@ public class MainMenuUI : MonoBehaviour
 
         if (signupNicknameInput != null)
         {
+            signupNicknameInput.characterLimit = 10;
             signupNicknameInput.onValueChanged.AddListener(OnNicknameValueChanged);
         }
 
@@ -177,7 +178,7 @@ public class MainMenuUI : MonoBehaviour
         if (loginIDInput != null)
         {
             loginIDInput.onValidateInput = ValidateIDInput; // 한글 차단 및 소문자 자동 변환
-            loginIDInput.characterLimit = 12;
+            loginIDInput.characterLimit = 10;
             // [추가] IME 한글 버그 방지 - 실시간 텍스트 정화
             loginIDInput.onValueChanged.AddListener((val) => SanitizeInputField(loginIDInput, @"[^a-z0-9]"));
         }
@@ -204,11 +205,11 @@ public class MainMenuUI : MonoBehaviour
             signupPasswordConfirmInput.onValueChanged.AddListener((val) => SanitizeInputField(signupPasswordConfirmInput, @"[^a-zA-Z0-9!@#$%^&*()_+{}:""<>?|\[\]\\;',./`~-]"));
         }
 
-        // [방 코드 입력] 엔터키(Submit) 이벤트 연결 및 숫자 4자리 제한
+        // [방 코드 입력] 엔터키(Submit) 이벤트 연결 및 숫자 6자리 제한
         if (roomCodeInputField != null)
         {
             roomCodeInputField.contentType = TMP_InputField.ContentType.IntegerNumber;
-            roomCodeInputField.characterLimit = 4;
+            roomCodeInputField.characterLimit = 6;
             roomCodeInputField.onSubmit.AddListener((_) => OnClickConfirmJoin());
         }
 
@@ -800,10 +801,10 @@ public class MainMenuUI : MonoBehaviour
             SetValidationText(idValidationText, "<color=red>아이디를 입력해주세요.</color>");
             hasError = true;
         }
-        // 영문+숫자 필수 포함, 6~12자 (Regex 하나로 처리! ✨)
-        else if (!Regex.IsMatch(id, @"^(?=.*[a-zA-Z])(?=.*[0-9])[a-zA-Z0-9]{6,12}$"))
+        // DB와 동일하게 영문+숫자 필수 포함, 6~10자
+        else if (!Regex.IsMatch(id, @"^(?=.*[a-zA-Z])(?=.*[0-9])[a-zA-Z0-9]{6,10}$"))
         {
-            SetValidationText(idValidationText, "<color=red>아이디는 영문과 숫자를 포함해 6~12자여야 합니다.</color>");
+            SetValidationText(idValidationText, "<color=red>아이디는 영문과 숫자를 포함해 6~10자여야 합니다.</color>");
             hasError = true;
         }
         else if (!isIDChecked)
@@ -819,9 +820,9 @@ public class MainMenuUI : MonoBehaviour
             if (nicknameValidationText != null) nicknameValidationText.text = "<color=red>닉네임을 입력해주세요.</color>";
             hasError = true;
         }
-        else if (nickname.Length < 2 || nickname.Length > 12)
+        else if (nickname.Length < 2 || nickname.Length > 10)
         {
-            if (nicknameValidationText != null) nicknameValidationText.text = "<color=red>닉네임은 2~12자 이내여야 합니다.</color>";
+            if (nicknameValidationText != null) nicknameValidationText.text = "<color=red>닉네임은 2~10자 이내여야 합니다.</color>";
             hasError = true;
         }
         else if (nickname.StartsWith(" ") || nickname.EndsWith(" "))
@@ -962,11 +963,11 @@ public class MainMenuUI : MonoBehaviour
 
         string id = signupIDInput.text;
 
-        // 1. 글자 수 검사 (6~12자)
-        if (!Regex.IsMatch(id, @"^(?=.*[a-zA-Z])(?=.*[0-9])[a-zA-Z0-9]{6,12}$"))
+        // 1. 글자 수 검사 (6~10자)
+        if (!Regex.IsMatch(id, @"^(?=.*[a-zA-Z])(?=.*[0-9])[a-zA-Z0-9]{6,10}$"))
         {
             StopAllCoroutines(); // 기존에 돌던 메시지 지우기 예약 취소
-            StartCoroutine(ShowTemporaryMessage(idValidationText, "<color=red>영문과 숫자를 포함해 6~12자로 입력해주세요!</color>"));
+            StartCoroutine(ShowTemporaryMessage(idValidationText, "<color=red>영문과 숫자를 포함해 6~10자로 입력해주세요!</color>"));
             isIDChecked = false;
             return;
         }
@@ -997,10 +998,10 @@ public class MainMenuUI : MonoBehaviour
 
         string nickname = signupNicknameInput.text;
 
-        // 1. 글자 수 검사 (2~12자)
-        if (string.IsNullOrEmpty(nickname) || nickname.Length < 2 || nickname.Length > 12)
+        // 1. 글자 수 검사 (2~10자)
+        if (string.IsNullOrEmpty(nickname) || nickname.Length < 2 || nickname.Length > 10)
         {
-            nicknameValidationText.text = "<color=red>닉네임은 2~12자 이내여야 합니다.</color>";
+            nicknameValidationText.text = "<color=red>닉네임은 2~10자 이내여야 합니다.</color>";
             return;
         }
 
@@ -1035,6 +1036,7 @@ public class MainMenuUI : MonoBehaviour
 
     public void OnClickGuestLogin()
     {
+        AuthSession.Clear();
         // [추가] 게스트 모드 로그인 정보 기록 (세션 한정)
         CurrentSessionUserID = "Guest_" + UnityEngine.Random.Range(1000, 9999).ToString();
         Debug.Log($"👤 [MainMenuUI] 게스트 로그인 시도: {CurrentSessionUserID}");
@@ -1048,6 +1050,23 @@ public class MainMenuUI : MonoBehaviour
         
         // 입력 필드 청소
         ClearAllInputs();
+    }
+
+    public void OnClickLogout()
+    {
+        void CompleteLogout()
+        {
+            CurrentSessionUserID = null;
+            CurrentSessionNickname = null;
+            AuthSession.Clear();
+            AuthManager.InitializeProgression(null);
+            UnityEngine.SceneManagement.SceneManager.LoadScene(0);
+        }
+
+        if (AuthManager.Instance != null)
+            StartCoroutine(AuthManager.Instance.Logout(CompleteLogout));
+        else
+            CompleteLogout();
     }
 
     // [신규] 비밀번호 입력 필터 (한글/공백 차단)
@@ -1166,7 +1185,7 @@ public class MainMenuUI : MonoBehaviour
     // [방 생성] 네트워킹 로직 포함
     public async void OnClickCreateRoom()
     {
-        currentRoomCode = Random.Range(1000, 9999).ToString();
+        currentRoomCode = Random.Range(100000, 1000000).ToString();
 
         if (loadingPanel != null) loadingPanel.SetActive(true);
         if (loadingStatusText != null) loadingStatusText.text = "방을 만드는 중입니다...";
@@ -1214,7 +1233,15 @@ public class MainMenuUI : MonoBehaviour
     public async void OnClickConfirmJoin()
     {
         string code = roomCodeInputField != null ? roomCodeInputField.text : "";
-        if (string.IsNullOrEmpty(code)) return;
+        if (!Regex.IsMatch(code, @"^\d{6}$"))
+        {
+            if (joinRoomErrorText != null)
+            {
+                joinRoomErrorText.text = "방 코드는 숫자 6자리입니다.";
+                joinRoomErrorText.gameObject.SetActive(true);
+            }
+            return;
+        }
 
         currentRoomCode = code;
         if (loadingPanel != null) loadingPanel.SetActive(true);

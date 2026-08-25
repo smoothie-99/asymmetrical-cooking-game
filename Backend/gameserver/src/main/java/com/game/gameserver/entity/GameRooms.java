@@ -3,7 +3,9 @@ package com.game.gameserver.entity;
 import java.time.LocalDateTime;
 
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.hibernate.type.SqlTypes;
 
 import jakarta.persistence.*;
 import jakarta.persistence.GeneratedValue;
@@ -30,6 +32,7 @@ public class GameRooms {
     private Integer currentLevel = 1;
 
     @Column(name="cook_book", columnDefinition = "jsonb")
+    @JdbcTypeCode(SqlTypes.JSON)
     private String cookBook = "[]";
 
     @Column(name="final_score")
