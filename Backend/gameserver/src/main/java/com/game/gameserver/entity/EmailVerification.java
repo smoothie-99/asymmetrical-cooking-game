@@ -23,7 +23,7 @@ public class EmailVerification {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     private String email;
 
     @Column(nullable = false, unique = true)
@@ -32,11 +32,25 @@ public class EmailVerification {
     @Column(nullable = false)
     private LocalDateTime expirationTime;
 
+    @Column(nullable = false)
+    private LocalDateTime lastSentAt;
+
     @Builder.Default
     private boolean isVerified = false;
 
     public void verify(){
         this.isVerified = true;
+    }
+
+    public void renew(String token, LocalDateTime sentAt, LocalDateTime expirationTime) {
+        this.token = token;
+        this.lastSentAt = sentAt;
+        this.expirationTime = expirationTime;
+        this.isVerified = false;
+    }
+
+    public boolean canResend(LocalDateTime now) {
+        return lastSentAt == null || !lastSentAt.plusMinutes(1).isAfter(now);
     }
     
     public boolean isExpired() {

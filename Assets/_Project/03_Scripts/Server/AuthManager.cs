@@ -7,7 +7,7 @@ using System;
 public class AuthManager : MonoBehaviour
 {
     public static AuthManager Instance;
-    private string baseUrl = "https://j14d107.p.ssafy.io/api/auth"; // 서버 주소
+    private string apiBaseUrl = "https://j14d107.p.ssafy.io/api"; // 서버 주소
 
     // [신규] 로그인 유저의 스테이지 전적 (2: Perfect, 1: Clear, 0: Failed / null이면 게스트/비로그인)
     public static int[] StageRecords { get; private set; } = null;
@@ -79,7 +79,7 @@ public class AuthManager : MonoBehaviour
     public IEnumerator Register(SignupRequest data, System.Action<bool, string> callback)
     {
         string json = JsonUtility.ToJson(data);
-        using (UnityWebRequest request = new UnityWebRequest($"{baseUrl}/signup", "POST"))
+        using (UnityWebRequest request = new UnityWebRequest($"{apiBaseUrl}/auth/signup", "POST"))
         {
             byte[] bodyRaw = Encoding.UTF8.GetBytes(json);
             request.uploadHandler = new UploadHandlerRaw(bodyRaw);
@@ -108,7 +108,7 @@ public class AuthManager : MonoBehaviour
     public IEnumerator Login(LoginRequest data, System.Action<bool, LoginResponse> callback)
     {
         string json = JsonUtility.ToJson(data);
-        using (UnityWebRequest request = new UnityWebRequest($"{baseUrl}/login", "POST"))
+        using (UnityWebRequest request = new UnityWebRequest($"{apiBaseUrl}/auth/login", "POST"))
         {
             byte[] bodyRaw = Encoding.UTF8.GetBytes(json);
             request.uploadHandler = new UploadHandlerRaw(bodyRaw);
@@ -126,6 +126,7 @@ public class AuthManager : MonoBehaviour
 
                 // JWT 토큰 저장!
                 PlayerPrefs.SetString("AccessToken", response.accessToken);
+                PlayerPrefs.SetString("RefreshToken", response.refreshToken);
                 callback?.Invoke(true, response);
             }
             else
@@ -138,7 +139,7 @@ public class AuthManager : MonoBehaviour
     // 아이디 중복 확인 요청
     public IEnumerator CheckID(string loginId, System.Action<bool, string> callback)
     {
-        string url = $"{baseUrl}/check-id?loginId={loginId}";
+        string url = $"{apiBaseUrl}/auth/check-id?loginId={UnityWebRequest.EscapeURL(loginId)}";
 
         using (UnityWebRequest request = UnityWebRequest.Get(url))
         {
@@ -173,7 +174,7 @@ public class AuthManager : MonoBehaviour
     // [수정] 이메일 인증 확인 (이메일 기준)
     public IEnumerator CheckEmailVerified(string email, System.Action<bool> callback)
     {
-        string url = $"{baseUrl}/is-verified?email={email}";
+        string url = $"{apiBaseUrl}/auth/is-verified?email={UnityWebRequest.EscapeURL(email)}";
         using (UnityWebRequest request = UnityWebRequest.Get(url))
         {
             yield return request.SendWebRequest();
@@ -193,9 +194,9 @@ public class AuthManager : MonoBehaviour
     public IEnumerator CheckNickname(string nickname, System.Action<bool, string> callback)
     {
         // 닉네임 중복 확인은 POST 방식 (기존 규격 유지)
-        string json = "{\"nickname\":\"" + nickname + "\"}";
+        string json = JsonUtility.ToJson(new CheckNicknameRequest { nickname = nickname });
 
-        using (UnityWebRequest request = new UnityWebRequest($"{baseUrl}/check-nickname", "POST"))
+        using (UnityWebRequest request = new UnityWebRequest($"{apiBaseUrl}/auth/check-nickname", "POST"))
         {
             byte[] bodyRaw = Encoding.UTF8.GetBytes(json);
             request.uploadHandler = new UploadHandlerRaw(bodyRaw);
@@ -219,7 +220,7 @@ public class AuthManager : MonoBehaviour
     // 이메일 인증 메일 발송 요청
     public IEnumerator SendVerificationEmail(string email, System.Action<bool, string> callback)
     {
-        string url = $"{baseUrl}/send-verification?email={email}";
+        string url = $"{apiBaseUrl}/auth/send-verification?email={UnityWebRequest.EscapeURL(email)}";
         
         using (UnityWebRequest request = UnityWebRequest.PostWwwForm(url, ""))
         {
@@ -272,11 +273,23 @@ public class AuthManager : MonoBehaviour
             yield break;
         }
 
-        // [임시] 서버 URL (가상의 규격: api/game/record)
-        string url = $"{baseUrl}/record?stage={stageNumber}&result={resultScore}";
-        
-        using (UnityWebRequest request = UnityWebRequest.PostWwwForm(url, ""))
+        string json = JsonUtility.ToJson(new GameResultRequest
         {
+            stage = stageNumber,
+            achievementLevel = resultScore
+        });
+
+        yield return SendGameResult(json, true, callback);
+    }
+
+    private IEnumerator SendGameResult(string json, bool allowRefresh, System.Action<bool> callback)
+    {
+        string accessToken = PlayerPrefs.GetString("AccessToken", "");
+        using (UnityWebRequest request = new UnityWebRequest($"{apiBaseUrl}/game/result", "POST"))
+        {
+            request.uploadHandler = new UploadHandlerRaw(Encoding.UTF8.GetBytes(json));
+            request.downloadHandler = new DownloadHandlerBuffer();
+            request.SetRequestHeader("Content-Type", "application/json");
             request.SetRequestHeader("Authorization", "Bearer " + accessToken);
             yield return request.SendWebRequest();
 
@@ -285,11 +298,56 @@ public class AuthManager : MonoBehaviour
                 Debug.Log($"[Auth] 서버 전적 백업 성공!");
                 callback?.Invoke(true);
             }
+            else if (request.responseCode == 401 && allowRefresh)
+            {
+                bool refreshed = false;
+                yield return RefreshAccessToken(success => refreshed = success);
+                if (refreshed)
+                {
+                    yield return SendGameResult(json, false, callback);
+                }
+                else
+                {
+                    callback?.Invoke(false);
+                }
+            }
             else
             {
-                // 서버가 404나 500을 뱉어도, 로컬은 이미 갱신됐으므로 UI상으론 '성공'으로 간주하여 진행 가능케 함
-                Debug.LogWarning($"[Auth] 서버 백업 실패({request.error}). 하지만 현재 세션 데이터는 유지됩니다.");
-                callback?.Invoke(true); // UI 진행을 위해 true 반환
+                Debug.LogWarning($"[Auth] 서버 전적 저장 실패({request.responseCode}): {request.downloadHandler.text}");
+                callback?.Invoke(false);
+            }
+        }
+    }
+
+    private IEnumerator RefreshAccessToken(System.Action<bool> callback)
+    {
+        string refreshToken = PlayerPrefs.GetString("RefreshToken", "");
+        if (string.IsNullOrEmpty(refreshToken))
+        {
+            callback?.Invoke(false);
+            yield break;
+        }
+
+        string json = JsonUtility.ToJson(new RefreshTokenRequest { refreshToken = refreshToken });
+        using (UnityWebRequest request = new UnityWebRequest($"{apiBaseUrl}/auth/refresh", "POST"))
+        {
+            request.uploadHandler = new UploadHandlerRaw(Encoding.UTF8.GetBytes(json));
+            request.downloadHandler = new DownloadHandlerBuffer();
+            request.SetRequestHeader("Content-Type", "application/json");
+            yield return request.SendWebRequest();
+
+            if (request.result == UnityWebRequest.Result.Success)
+            {
+                TokenResponse response = JsonUtility.FromJson<TokenResponse>(request.downloadHandler.text);
+                PlayerPrefs.SetString("AccessToken", response.accessToken);
+                PlayerPrefs.SetString("RefreshToken", response.refreshToken);
+                callback?.Invoke(true);
+            }
+            else
+            {
+                PlayerPrefs.DeleteKey("AccessToken");
+                PlayerPrefs.DeleteKey("RefreshToken");
+                callback?.Invoke(false);
             }
         }
     }

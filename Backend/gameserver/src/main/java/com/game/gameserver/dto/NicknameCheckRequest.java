@@ -1,19 +1,15 @@
 package com.game.gameserver.dto;
 
-import lombok.Getter;
-import lombok.NoArgsConstructor;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Getter
 @NoArgsConstructor
-public class LoginRequest {
+public class NicknameCheckRequest {
 
     @NotBlank
     @Size(max = 10)
-    private String loginId;
-
-    @NotBlank
-    @Size(max = 72)
-    private String password;
+    private String nickname;
 }

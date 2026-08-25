@@ -1,0 +1,54 @@
+name: Backend Test
+
+on:
+  pull_request:
+    paths:
+      - "Backend/gameserver/**"
+      - ".github/workflows/backend-test.yml"
+  push:
+    branches: [main]
+    paths:
+      - "Backend/gameserver/**"
+      - ".github/workflows/backend-test.yml"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: cooking_game_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d cooking_game_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    defaults:
+      run:
+        working-directory: Backend/gameserver
+
+    env:
+      TEST_DB_URL: jdbc:postgresql://localhost:5432/cooking_game_test
+      TEST_DB_USERNAME: postgres
+      TEST_DB_PASSWORD: postgres
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: gradle
+          cache-dependency-path: Backend/gameserver/*.gradle*
+      - name: Run backend tests
+        run: ./gradlew test --no-daemon
+      - name: Print failed test details
+        if: failure()
+        run: |
+          find build/test-results/test -name "TEST-*.xml" -type f -print -exec sed -n '/<failure/,/<\/failure>/p' {} \;

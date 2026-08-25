@@ -26,6 +26,6 @@ public class Dish {
     @Column(nullable = false, unique = true)
     private String name;
 
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     private Integer stage;
 }

@@ -39,5 +39,24 @@ public class LoginResponse
     public int[] stageResults; // [신규] 스테이지 클리어 결과 (2: Perfect, 1: Clear, 0: Failed)
 }
 
+[Serializable]
+public class GameResultRequest
+{
+    public int stage;
+    public int achievementLevel;
+}
+
+[Serializable]
+public class RefreshTokenRequest
+{
+    public string refreshToken;
+}
+
+[Serializable]
+public class TokenResponse
+{
+    public string accessToken;
+    public string refreshToken;
+}
 
 

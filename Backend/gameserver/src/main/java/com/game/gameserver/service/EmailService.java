@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
@@ -23,7 +24,7 @@ public class EmailService {
     private String senderEmail;
 
     public void sendVerificationEmail(String toEmail, String token) {
-        log.info("인증 메일 발송 시작: email={}, token={}", toEmail, token);
+        log.info("인증 메일 발송 시작: email={}", toEmail);
 
         MimeMessage mimeMessage = mailSender.createMimeMessage();
 
@@ -33,7 +34,12 @@ public class EmailService {
             helper.setTo(toEmail);
             helper.setSubject("[내 요리를 부탁해!] 회원가입 이메일 인증");
 
-            String verificationUrl = baseUrl + "/api/auth/verify-email?token=" + token;
+            String verificationUrl = UriComponentsBuilder.fromUriString(baseUrl)
+                    .path("/api/auth/verify-email")
+                    .queryParam("token", token)
+                    .build()
+                    .encode()
+                    .toUriString();
 
             String htmlContent = "<html><body style='font-family: Arial, sans-serif;'>" +
                     "<h2>안녕하세요! 내 요리를 부탁해!에 오신 것을 환영합니다.</h2>" +
