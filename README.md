@@ -12,7 +12,8 @@
 - Unity: 6.3 LTS (6000.3.x)
 - 3D Low-Poly + Pixel Art Filter Texture
 - Physics-based Interaction (RigidBody 기반)
-- Multiplayer: Unity Netcode for GameObjects (NGO)
+- Multiplayer: Photon Fusion 2 Shared Mode + Photon Voice
+- Backend: Java 17, Spring Boot, PostgreSQL, JWT
 
 ---
 
@@ -24,6 +25,63 @@
      - **Version Control Mode: Visible Meta Files**
      - **Asset Serialization: Force Text**
 3. 에셋/씬/프리팹 추가 후에는 `.meta` 포함하여 커밋/체크인(Plastic/Git 동일)
+
+### 백엔드 로컬 실행
+
+1. `Backend/gameserver/.env.example`을 `.env`로 복사하고 실제 값을 입력합니다.
+2. 공개 저장소에 있던 기존 JWT 키는 사용하지 말고 32자 이상의 새 키를 발급합니다.
+3. `Backend/gameserver`에서 `docker compose up --build`를 실행합니다.
+4. 서버 상태는 `http://localhost:8107/actuator/health`에서 확인할 수 있습니다.
+
+Unity의 `AuthManager`에서 `apiBaseUrl`을 실행 환경에 맞게 설정합니다. 데스크톱 개발 환경에서는
+`COOKING_GAME_API_URL` 환경변수로 덮어쓸 수 있습니다. 값은 `/api`까지 포함해야 합니다.
+
+```text
+http://localhost:8080/api
+https://your-domain.example/api
+```
+
+### 인증 토큰
+
+- Access Token: 기본 15분, 일반 API 인증에만 사용
+- Refresh Token: 기본 7일, `/api/auth/refresh`에서만 사용
+- Refresh Token은 서버 DB에 원문 대신 SHA-256 해시로 저장하며 갱신할 때마다 회전
+- Unity 클라이언트는 토큰을 `PlayerPrefs`가 아닌 현재 프로세스 메모리에만 보관
+
+### 백엔드 테스트
+
+통합 테스트는 PostgreSQL의 비관적 락과 Flyway 마이그레이션까지 실제 환경과 동일하게 확인합니다.
+
+```bash
+cd Backend/gameserver
+docker compose -f docker-compose.test.yml up -d --wait
+./gradlew clean test jacocoTestReport
+docker compose -f docker-compose.test.yml down
+```
+
+테스트 결과는 `build/reports/tests/test/index.html`, 커버리지는
+`build/reports/jacoco/test/html/index.html`에서 확인할 수 있습니다. GitHub Actions에서도 같은 테스트와
+커버리지 측정을 자동으로 수행합니다.
+
+배포된 서버의 기록 저장 성능은 [k6](https://grafana.com/docs/k6/latest/set-up/install-k6/)로 측정할 수 있습니다.
+테스트 계정은 1번 스테이지가 해금되어 있어야 하며, 운영 데이터와 분리된 스테이징 환경에서 실행하세요.
+
+```bash
+cd Backend/gameserver
+BASE_URL=https://staging.example.com \
+ACCESS_TOKEN=테스트_계정의_Access_Token \
+k6 run performance/game-result.js
+```
+
+기본 조건은 동시 사용자 50명, 1분이며 오류율 1% 미만, 성공 검사 99% 초과,
+p95 응답시간 1초 미만을 목표로 설정했습니다. 실제 측정 결과를 확인한 뒤 서비스 환경에 맞게 기준을 조정합니다.
+
+### 배포
+
+- `Backend/gameserver/deploy.sh`: 이미지 빌드, Compose 갱신, Health Check 수행
+- `Infra/nginx/cooking-game.conf.example`: HTTPS Reverse Proxy 예시
+- Jenkins는 애플리케이션 Compose에서 분리했습니다. Docker 소켓을 마운트한 root Jenkins는
+  호스트 root 권한과 동일한 위험이 있으므로 별도 Runner 또는 최소 권한 배포 계정을 사용합니다.
 
 ---
 
@@ -139,7 +197,7 @@ Unity Editor 전용 코드 (런타임 빌드에 포함되지 않게 분리)
 ## 협업 시 자주 터지는 문제 예방 ⭐
 
 - `.meta` 파일은 **절대 삭제/누락 금지**
-- **멀티플레이 코드 작성 주의:** 상태 동기화가 필요한 값은 일반 변수 대신 `NetworkVariable`을 사용하고, 서버 권한 로직(`IsServer`)과 클라이언트 로직(`IsOwner`, `IsClient`)을 명확히 분리하세요.
+- **멀티플레이 코드 작성 주의:** Photon Fusion의 `[Networked]` 속성을 사용하고, `StateAuthority`와 `InputAuthority`를 명확히 분리하세요.
 - 씬/프리팹 충돌이 자주 나면:
   - 프리팹화로 작업 단위 분리
   - (Plastic/Unity VCS 사용 시) 씬 파일 Checkout 및 Lock 기능 적극 활용

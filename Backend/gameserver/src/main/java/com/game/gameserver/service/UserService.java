@@ -16,6 +16,7 @@ import com.game.gameserver.entity.Users;
 import com.game.gameserver.repository.DishRepository;
 import com.game.gameserver.repository.UserDishRepository;
 import com.game.gameserver.repository.UserRepository;
+import com.game.gameserver.repository.RoomPlayerRepository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -28,6 +29,7 @@ public class UserService {
     private final UserDishRepository userDishRepository;
     private final DishRepository dishRepository;
     private final PasswordEncoder passwordEncoder;
+    private final RoomPlayerRepository roomPlayerRepository;
 
     public UserResponse getMyInfo(String loginId) {
         Users user = userRepository.findByLoginId(loginId)
@@ -48,14 +50,11 @@ public class UserService {
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
         if (request.getNickname() != null) {
-            if (userRepository.existsByNickname(request.getNickname())) {
-                throw new IllegalArgumentException("이미 존재하는 닉네임입니다.");
+            if (!request.getNickname().equals(user.getNickname())
+                    && userRepository.existsByNickname(request.getNickname())) {
+                throw new IllegalStateException("이미 존재하는 닉네임입니다.");
             }
             user.setNickname(request.getNickname());
-        }
-
-        if (request.getClearProgressLevel() != null) {
-            user.setClearProgressLevel(request.getClearProgressLevel());
         }
 
         return UserResponse.builder()
@@ -90,6 +89,17 @@ public class UserService {
         Users user = userRepository.findByLoginIdForUpdate(loginId)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
+        if (stage == null || stage < 1 || stage > 12) {
+            throw new IllegalArgumentException("스테이지는 1부터 12 사이여야 합니다.");
+        }
+        int clearProgressLevel = user.getClearProgressLevel() == null ? 1 : user.getClearProgressLevel();
+        if (user.getClearProgressLevel() == null) {
+            user.setClearProgressLevel(clearProgressLevel);
+        }
+        if (stage > clearProgressLevel) {
+            throw new IllegalArgumentException("아직 해금되지 않은 스테이지입니다.");
+        }
+
         Dish dish = dishRepository.findByStage(stage)
                 .orElseThrow(() -> new IllegalArgumentException("해당 스테이지의 요리를 찾을 수 없습니다."));
 
@@ -104,6 +114,10 @@ public class UserService {
                         .dish(dish)
                         .achievementLevel(achievementLevel)
                         .build()));
+
+        if (achievementLevel >= 1 && stage == clearProgressLevel && stage < 12) {
+            user.setClearProgressLevel(stage + 1);
+        }
     }
 
     private void validateAchievementLevel(Integer achievementLevel) {
@@ -124,15 +138,20 @@ public class UserService {
 
         String newPassword = request.getNewPassword();
 
-        String passwordPattern = "^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d]{6,}$";
+        if (!newPassword.equals(request.getNewPasswordConfirm())) {
+            throw new IllegalArgumentException("새 비밀번호가 일치하지 않습니다.");
+        }
+
+        String passwordPattern = "^(?=.*[A-Za-z])(?=.*\\d)(?=.*[^A-Za-z\\d\\s]).{8,20}$";
 
         if (!newPassword.matches(passwordPattern)) {
-            throw new IllegalArgumentException("비밀번호는 최소 6자 이상이어야 하며, 영문자, 숫자를 포함해야 합니다.");
+            throw new IllegalArgumentException("비밀번호는 영문, 숫자, 특수문자를 포함해 8~20자여야 합니다.");
         }
 
         // 새 비밀번호로 업데이트
         String encodedNewPassword = passwordEncoder.encode(newPassword);
         user.setPassword(encodedNewPassword);
+        user.setRefreshTokenHash(null);
     }
 
     @Transactional
@@ -140,7 +159,7 @@ public class UserService {
         Users user = userRepository.findByLoginId(loginId)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
-        user.setRefreshToken(null);
+        user.setRefreshTokenHash(null);
     }
 
     @Transactional
@@ -148,6 +167,7 @@ public class UserService {
         Users user = userRepository.findByLoginId(loginId)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
+        roomPlayerRepository.deleteByUser(user);
         userDishRepository.deleteByUser(user);
 
         userRepository.delete(user);

@@ -1,0 +1,67 @@
+name: Backend CI
+
+on:
+  push:
+    paths:
+      - "Backend/gameserver/**"
+      - ".github/workflows/backend-ci.yml"
+  pull_request:
+    paths:
+      - "Backend/gameserver/**"
+      - ".github/workflows/backend-ci.yml"
+
+jobs:
+  test-and-build:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: cooking_game_test
+          POSTGRES_USER: game_test
+          POSTGRES_PASSWORD: game_test_password
+        ports:
+          - 55432:5432
+        options: >-
+          --health-cmd "pg_isready -U game_test -d cooking_game_test"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+    defaults:
+      run:
+        working-directory: Backend/gameserver
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          sparse-checkout: Backend/gameserver
+          sparse-checkout-cone-mode: true
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: gradle
+      - name: Test and build
+        env:
+          JWT_SECRET: ci-only-secret-key-that-is-longer-than-32-characters
+        run: ./gradlew clean test bootJar --no-daemon
+      - name: Print coverage summary
+        if: success()
+        run: >-
+          awk -F, 'NR > 1 { missed += $4; covered += $5 }
+          END { total = missed + covered;
+          printf "Instruction coverage: %.2f%% (%d/%d)\n",
+          total ? covered * 100 / total : 0, covered, total }'
+          build/reports/jacoco/test/jacocoTestReport.csv
+      - name: Upload coverage report
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-jacoco-report
+          path: Backend/gameserver/build/reports/jacoco/test/
+      - name: Upload test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-test-report
+          path: Backend/gameserver/build/reports/tests/test/
+          if-no-files-found: ignore

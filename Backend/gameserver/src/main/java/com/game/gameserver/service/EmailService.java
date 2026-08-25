@@ -23,7 +23,7 @@ public class EmailService {
     private String senderEmail;
 
     public void sendVerificationEmail(String toEmail, String token) {
-        log.info("인증 메일 발송 시작: email={}, token={}", toEmail, token);
+        log.info("인증 메일 발송 시작");
 
         MimeMessage mimeMessage = mailSender.createMimeMessage();
 
@@ -47,9 +47,9 @@ public class EmailService {
             helper.setText(htmlContent, true);
 
             mailSender.send(mimeMessage);
-            log.info("인증 메일 발송 성공: email={}", toEmail);
+            log.info("인증 메일 발송 성공");
         } catch (Exception e) {
-            log.error("인증 메일 발송 실패: email={}, error={}", toEmail, e.getMessage());
+            log.error("인증 메일 발송 실패: error={}", e.getMessage());
             throw new RuntimeException("메일 발송 중 오류가 발생했습니다.");
         }
     }

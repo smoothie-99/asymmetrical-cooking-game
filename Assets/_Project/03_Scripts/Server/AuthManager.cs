@@ -7,7 +7,13 @@ using System;
 public class AuthManager : MonoBehaviour
 {
     public static AuthManager Instance;
-    private string baseUrl = "https://j14d107.p.ssafy.io/api/auth"; // 서버 주소
+
+    [Header("Backend API")]
+    [SerializeField] private string apiBaseUrl = "http://localhost:8080/api";
+    [SerializeField] private int requestTimeoutSeconds = 10;
+
+    private string AuthBaseUrl => $"{apiBaseUrl.TrimEnd('/')}/auth";
+    private string GameBaseUrl => $"{apiBaseUrl.TrimEnd('/')}/game";
 
     // [신규] 로그인 유저의 스테이지 전적 (2: Perfect, 1: Clear, 0: Failed / null이면 게스트/비로그인)
     public static int[] StageRecords { get; private set; } = null;
@@ -49,14 +55,6 @@ public class AuthManager : MonoBehaviour
     /// </summary>
     public static void InitializeProgression(LoginResponse response)
     {
-        // [신규] 게스트 상태에서 메인 메뉴 등으로 돌아왔을 때 기록이 초기화되는 것을 방지
-        if (response == null && StageRecords != null && StageRecords.Length > 0)
-        {
-            Debug.Log("🔄 [Auth] 기존 게스트 전적 데이터를 유지합니다.");
-            SyncProgressionToNetwork();
-            return;
-        }
-
         if (response != null && response.stageResults != null)
         {
             StageRecords = response.stageResults;
@@ -73,18 +71,50 @@ public class AuthManager : MonoBehaviour
         SyncProgressionToNetwork();
     }
 
-    private void Awake() => Instance = this;
+    private void Awake()
+    {
+        Instance = this;
+
+        string environmentUrl = Environment.GetEnvironmentVariable("COOKING_GAME_API_URL");
+        if (!string.IsNullOrWhiteSpace(environmentUrl))
+        {
+            apiBaseUrl = environmentUrl;
+        }
+    }
+
+    private void ConfigureRequest(UnityWebRequest request)
+    {
+        request.timeout = Mathf.Max(1, requestTimeoutSeconds);
+        request.SetRequestHeader("Accept", "application/json");
+    }
+
+    private static string GetErrorMessage(UnityWebRequest request, string fallback)
+    {
+        if (request?.downloadHandler == null || string.IsNullOrWhiteSpace(request.downloadHandler.text))
+            return fallback;
+
+        try
+        {
+            ApiErrorResponse error = JsonUtility.FromJson<ApiErrorResponse>(request.downloadHandler.text);
+            return string.IsNullOrWhiteSpace(error?.message) ? fallback : error.message;
+        }
+        catch
+        {
+            return fallback;
+        }
+    }
 
     // 회원가입 요청
     public IEnumerator Register(SignupRequest data, System.Action<bool, string> callback)
     {
         string json = JsonUtility.ToJson(data);
-        using (UnityWebRequest request = new UnityWebRequest($"{baseUrl}/signup", "POST"))
+        using (UnityWebRequest request = new UnityWebRequest($"{AuthBaseUrl}/signup", "POST"))
         {
             byte[] bodyRaw = Encoding.UTF8.GetBytes(json);
             request.uploadHandler = new UploadHandlerRaw(bodyRaw);
             request.downloadHandler = new DownloadHandlerBuffer();
             request.SetRequestHeader("Content-Type", "application/json");
+            ConfigureRequest(request);
 
             yield return request.SendWebRequest();
 
@@ -99,7 +129,7 @@ public class AuthManager : MonoBehaviour
             {
                 Debug.LogError($"[Register] 에러 발생: {request.error}");
                 Debug.LogError($"[Register] 상세 에러: {request.downloadHandler.text}");
-                callback?.Invoke(false, request.downloadHandler.text);
+                callback?.Invoke(false, GetErrorMessage(request, "회원가입 요청에 실패했습니다."));
             }
         }
     }
@@ -108,28 +138,36 @@ public class AuthManager : MonoBehaviour
     public IEnumerator Login(LoginRequest data, System.Action<bool, LoginResponse> callback)
     {
         string json = JsonUtility.ToJson(data);
-        using (UnityWebRequest request = new UnityWebRequest($"{baseUrl}/login", "POST"))
+        using (UnityWebRequest request = new UnityWebRequest($"{AuthBaseUrl}/login", "POST"))
         {
             byte[] bodyRaw = Encoding.UTF8.GetBytes(json);
             request.uploadHandler = new UploadHandlerRaw(bodyRaw);
             request.downloadHandler = new DownloadHandlerBuffer();
             request.SetRequestHeader("Content-Type", "application/json");
+            ConfigureRequest(request);
 
             yield return request.SendWebRequest();
 
             if (request.result == UnityWebRequest.Result.Success)
             {
                 var response = JsonUtility.FromJson<LoginResponse>(request.downloadHandler.text);
-                
+                if (response == null || string.IsNullOrWhiteSpace(response.accessToken)
+                        || string.IsNullOrWhiteSpace(response.refreshToken))
+                {
+                    AuthSession.Clear();
+                    callback?.Invoke(false, null);
+                    yield break;
+                }
+
                 // [신규] 스테이지 해금 및 전적 정보를 로컬에 동기화합니다.
                 InitializeProgression(response);
 
-                // JWT 토큰 저장!
-                PlayerPrefs.SetString("AccessToken", response.accessToken);
+                AuthSession.SetTokens(response.accessToken, response.refreshToken);
                 callback?.Invoke(true, response);
             }
             else
             {
+                AuthSession.Clear();
                 callback?.Invoke(false, null);
             }
         }
@@ -138,11 +176,11 @@ public class AuthManager : MonoBehaviour
     // 아이디 중복 확인 요청
     public IEnumerator CheckID(string loginId, System.Action<bool, string> callback)
     {
-        string url = $"{baseUrl}/check-id?loginId={loginId}";
+        string url = $"{AuthBaseUrl}/check-id?loginId={UnityWebRequest.EscapeURL(loginId)}";
 
         using (UnityWebRequest request = UnityWebRequest.Get(url))
         {
-            request.SetRequestHeader("Accept", "application/json");
+            ConfigureRequest(request);
 
             yield return request.SendWebRequest();
 
@@ -173,9 +211,10 @@ public class AuthManager : MonoBehaviour
     // [수정] 이메일 인증 확인 (이메일 기준)
     public IEnumerator CheckEmailVerified(string email, System.Action<bool> callback)
     {
-        string url = $"{baseUrl}/is-verified?email={email}";
+        string url = $"{AuthBaseUrl}/is-verified?email={UnityWebRequest.EscapeURL(email)}";
         using (UnityWebRequest request = UnityWebRequest.Get(url))
         {
+            ConfigureRequest(request);
             yield return request.SendWebRequest();
             if (request.result == UnityWebRequest.Result.Success)
             {
@@ -193,14 +232,15 @@ public class AuthManager : MonoBehaviour
     public IEnumerator CheckNickname(string nickname, System.Action<bool, string> callback)
     {
         // 닉네임 중복 확인은 POST 방식 (기존 규격 유지)
-        string json = "{\"nickname\":\"" + nickname + "\"}";
+        string json = JsonUtility.ToJson(new CheckNicknameRequest { nickname = nickname });
 
-        using (UnityWebRequest request = new UnityWebRequest($"{baseUrl}/check-nickname", "POST"))
+        using (UnityWebRequest request = new UnityWebRequest($"{AuthBaseUrl}/check-nickname", "POST"))
         {
             byte[] bodyRaw = Encoding.UTF8.GetBytes(json);
             request.uploadHandler = new UploadHandlerRaw(bodyRaw);
             request.downloadHandler = new DownloadHandlerBuffer();
             request.SetRequestHeader("Content-Type", "application/json");
+            ConfigureRequest(request);
 
             yield return request.SendWebRequest();
 
@@ -210,8 +250,7 @@ public class AuthManager : MonoBehaviour
             }
             else
             {
-                string errorMsg = request.downloadHandler.text;
-                callback?.Invoke(false, string.IsNullOrEmpty(errorMsg) ? "이미 존재하는 닉네임입니다." : errorMsg);
+                callback?.Invoke(false, GetErrorMessage(request, "이미 존재하는 닉네임입니다."));
             }
         }
     }
@@ -219,10 +258,14 @@ public class AuthManager : MonoBehaviour
     // 이메일 인증 메일 발송 요청
     public IEnumerator SendVerificationEmail(string email, System.Action<bool, string> callback)
     {
-        string url = $"{baseUrl}/send-verification?email={email}";
-        
-        using (UnityWebRequest request = UnityWebRequest.PostWwwForm(url, ""))
+        string json = JsonUtility.ToJson(new EmailVerificationRequest { email = email });
+
+        using (UnityWebRequest request = new UnityWebRequest($"{AuthBaseUrl}/send-verification", "POST"))
         {
+            request.uploadHandler = new UploadHandlerRaw(Encoding.UTF8.GetBytes(json));
+            request.downloadHandler = new DownloadHandlerBuffer();
+            request.SetRequestHeader("Content-Type", "application/json");
+            ConfigureRequest(request);
             yield return request.SendWebRequest();
 
             if (request.result == UnityWebRequest.Result.Success)
@@ -233,7 +276,7 @@ public class AuthManager : MonoBehaviour
             else
             {
                 Debug.LogError($"[SendVerificationEmail] 실패: {request.error}");
-                callback?.Invoke(false, "메일 발송에 실패했습니다.");
+                callback?.Invoke(false, GetErrorMessage(request, "메일 발송에 실패했습니다."));
             }
         }
     }
@@ -241,56 +284,144 @@ public class AuthManager : MonoBehaviour
     // 스테이지 결과 서버 전송 (회원 전용)
     public IEnumerator UpdateStageRecord(int stageNumber, CookingOutcome outcome, System.Action<bool> callback = null)
     {
-        // 결과 점수화 (2: Perfect, 1: Clear, 0: Failed)
+        if (stageNumber < 1 || stageNumber > 12)
+        {
+            Debug.LogError($"[Auth] 잘못된 스테이지 번호: {stageNumber}");
+            callback?.Invoke(false);
+            yield break;
+        }
+
         int resultScore = (outcome == CookingOutcome.PerfectClear) ? 2 : (outcome == CookingOutcome.Clear ? 1 : 0);
 
-        // [핵심] 서버 성공 여부와 무관하게 로컬 메모리는 무조건 먼저 갱신! (세션 유지)
-        if (StageRecords == null) StageRecords = new int[stageNumber];
-        else if (StageRecords.Length < stageNumber)
+        if (!AuthSession.IsAuthenticated)
         {
-            int[] newArr = new int[stageNumber];
-            Array.Copy(StageRecords, newArr, StageRecords.Length);
-            StageRecords = newArr;
-        }
-
-        if (StageRecords[stageNumber - 1] < resultScore) 
-        {
-            StageRecords[stageNumber - 1] = resultScore;
-            Debug.Log($"💾 [Auth] 로컬 전적 {stageNumber}단계 갱신: {resultScore}");
-        }
-
-        // 즉시 네트워크 동기화 (팀원들에게 알림)
-        SyncProgressionToNetwork();
-
-        string accessToken = PlayerPrefs.GetString("AccessToken", "");
-        
-        // 게스트나 비로그인 상태면 여기서 종료 (이미 로컬 갱신됨)
-        if (string.IsNullOrEmpty(accessToken))
-        {
-            Debug.Log($"[Auth] 게스트 모드입니다. {stageNumber}단계 결과를 로컬에만 저장하고 종료합니다.");
+            UpdateLocalStageRecord(stageNumber, resultScore);
+            Debug.Log($"[Auth] 게스트 모드입니다. {stageNumber}단계 결과를 현재 세션에만 저장합니다.");
             callback?.Invoke(true);
             yield break;
         }
 
-        // [임시] 서버 URL (가상의 규격: api/game/record)
-        string url = $"{baseUrl}/record?stage={stageNumber}&result={resultScore}";
-        
-        using (UnityWebRequest request = UnityWebRequest.PostWwwForm(url, ""))
+        string json = JsonUtility.ToJson(new GameResultRequest
         {
-            request.SetRequestHeader("Authorization", "Bearer " + accessToken);
+            stage = stageNumber,
+            achievementLevel = resultScore
+        });
+
+        for (int attempt = 0; attempt < 2; attempt++)
+        {
+            using (UnityWebRequest request = new UnityWebRequest($"{GameBaseUrl}/result", "POST"))
+            {
+                request.uploadHandler = new UploadHandlerRaw(Encoding.UTF8.GetBytes(json));
+                request.downloadHandler = new DownloadHandlerBuffer();
+                request.SetRequestHeader("Content-Type", "application/json");
+                request.SetRequestHeader("Authorization", "Bearer " + AuthSession.AccessToken);
+                ConfigureRequest(request);
+                yield return request.SendWebRequest();
+
+                if (request.result == UnityWebRequest.Result.Success)
+                {
+                    UpdateLocalStageRecord(stageNumber, resultScore);
+                    Debug.Log("[Auth] 서버 전적 저장 성공");
+                    callback?.Invoke(true);
+                    yield break;
+                }
+
+                if (request.responseCode != 401 || attempt > 0)
+                {
+                    Debug.LogWarning($"[Auth] 서버 전적 저장 실패: {GetErrorMessage(request, request.error)}");
+                    callback?.Invoke(false);
+                    yield break;
+                }
+            }
+
+            bool refreshed = false;
+            yield return RefreshTokens(success => refreshed = success);
+            if (!refreshed)
+            {
+                callback?.Invoke(false);
+                yield break;
+            }
+        }
+    }
+
+    private static void UpdateLocalStageRecord(int stageNumber, int resultScore)
+    {
+        if (StageRecords == null) StageRecords = new int[12];
+        else if (StageRecords.Length < 12)
+        {
+            int[] expanded = new int[12];
+            Array.Copy(StageRecords, expanded, StageRecords.Length);
+            StageRecords = expanded;
+        }
+
+        if (StageRecords[stageNumber - 1] < resultScore)
+        {
+            StageRecords[stageNumber - 1] = resultScore;
+        }
+        SyncProgressionToNetwork();
+    }
+
+    private IEnumerator RefreshTokens(System.Action<bool> callback)
+    {
+        if (string.IsNullOrWhiteSpace(AuthSession.RefreshToken))
+        {
+            AuthSession.Clear();
+            callback?.Invoke(false);
+            yield break;
+        }
+
+        string json = JsonUtility.ToJson(new RefreshTokenRequest
+        {
+            refreshToken = AuthSession.RefreshToken
+        });
+
+        using (UnityWebRequest request = new UnityWebRequest($"{AuthBaseUrl}/refresh", "POST"))
+        {
+            request.uploadHandler = new UploadHandlerRaw(Encoding.UTF8.GetBytes(json));
+            request.downloadHandler = new DownloadHandlerBuffer();
+            request.SetRequestHeader("Content-Type", "application/json");
+            ConfigureRequest(request);
             yield return request.SendWebRequest();
 
             if (request.result == UnityWebRequest.Result.Success)
             {
-                Debug.Log($"[Auth] 서버 전적 백업 성공!");
-                callback?.Invoke(true);
+                TokenResponse response = JsonUtility.FromJson<TokenResponse>(request.downloadHandler.text);
+                if (response != null && !string.IsNullOrWhiteSpace(response.accessToken)
+                        && !string.IsNullOrWhiteSpace(response.refreshToken))
+                {
+                    AuthSession.SetTokens(response.accessToken, response.refreshToken);
+                    callback?.Invoke(true);
+                    yield break;
+                }
             }
-            else
+
+            Debug.LogWarning($"[Auth] 토큰 갱신 실패: {GetErrorMessage(request, request.error)}");
+            AuthSession.Clear();
+            callback?.Invoke(false);
+        }
+    }
+
+    public IEnumerator Logout(System.Action callback = null)
+    {
+        if (!string.IsNullOrWhiteSpace(AuthSession.RefreshToken))
+        {
+            string json = JsonUtility.ToJson(new RefreshTokenRequest
             {
-                // 서버가 404나 500을 뱉어도, 로컬은 이미 갱신됐으므로 UI상으론 '성공'으로 간주하여 진행 가능케 함
-                Debug.LogWarning($"[Auth] 서버 백업 실패({request.error}). 하지만 현재 세션 데이터는 유지됩니다.");
-                callback?.Invoke(true); // UI 진행을 위해 true 반환
+                refreshToken = AuthSession.RefreshToken
+            });
+
+            using (UnityWebRequest request = new UnityWebRequest($"{AuthBaseUrl}/logout", "POST"))
+            {
+                request.uploadHandler = new UploadHandlerRaw(Encoding.UTF8.GetBytes(json));
+                request.downloadHandler = new DownloadHandlerBuffer();
+                request.SetRequestHeader("Content-Type", "application/json");
+                ConfigureRequest(request);
+                yield return request.SendWebRequest();
             }
         }
+
+        AuthSession.Clear();
+        InitializeProgression(null);
+        callback?.Invoke();
     }
 }
