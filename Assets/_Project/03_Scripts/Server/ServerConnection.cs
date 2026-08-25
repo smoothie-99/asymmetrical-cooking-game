@@ -13,8 +13,7 @@ public class ServerData
 public class ServerConnection : MonoBehaviour
 {
     [Header("서버 설정")]
-    // 나중에 배포할 때는 j14d107.p.ssafy.io 로 변경
-    public string url = "https://nonembryonic-sprucely-juliane.ngrok-free.dev/api/game/start"; 
+    public string url = "https://j14d107.p.ssafy.io/api/game/start";
 
     [Header("이동할 씬 이름")]
     public string targetSceneName = "00_Main_Game";
@@ -56,4 +55,3 @@ public class ServerConnection : MonoBehaviour
         }
     }
 }
-

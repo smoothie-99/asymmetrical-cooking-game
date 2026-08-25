@@ -24,14 +24,14 @@ public class RoomPlayers {
 
     // GameRoom 연결 고리
     @Id
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "room_id")
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "room_id", nullable = false)
     private GameRooms gameRoom;
 
     // User와의 연결 고리
     @Id
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "user_id", nullable = false)
     private Users user;
 
     // Role (Recipe Matster, Cooking Master)

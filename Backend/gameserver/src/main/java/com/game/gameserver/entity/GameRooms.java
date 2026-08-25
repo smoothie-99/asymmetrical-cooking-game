@@ -1,9 +1,13 @@
 package com.game.gameserver.entity;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.hibernate.type.SqlTypes;
 
 import jakarta.persistence.*;
 import jakarta.persistence.GeneratedValue;
@@ -29,8 +33,9 @@ public class GameRooms {
     @Column(name="current_level")
     private Integer currentLevel = 1;
 
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(name="cook_book", columnDefinition = "jsonb")
-    private String cookBook = "[]";
+    private List<Object> cookBook = new ArrayList<>();
 
     @Column(name="final_score")
     private Integer finalScore = 0;

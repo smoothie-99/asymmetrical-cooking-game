@@ -1,10 +1,9 @@
 package com.game.gameserver.controller;
 
-import java.util.Map;
-
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -14,9 +13,17 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.http.HttpStatus;
 
 import com.game.gameserver.dto.LoginRequest;
+import com.game.gameserver.dto.LoginResponse;
+import com.game.gameserver.dto.NicknameCheckRequest;
+import com.game.gameserver.dto.RefreshTokenRequest;
 import com.game.gameserver.dto.SignupRequest;
+import com.game.gameserver.dto.TokenResponse;
 import com.game.gameserver.service.AuthService;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -24,12 +31,13 @@ import lombok.extern.slf4j.Slf4j;
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
 @Slf4j
+@Validated
 public class AuthController {
 
     private final AuthService authService;
 
     @PostMapping("/signup")
-    public ResponseEntity<String> signup(@RequestBody SignupRequest request) {
+    public ResponseEntity<String> signup(@Valid @RequestBody SignupRequest request) {
         log.info("회원가입 요청 수신: loginId={}, email={}", request.getLoginId(), request.getEmail());
         String message = authService.signup(
                 request.getLoginId(),
@@ -41,21 +49,26 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<Map<String, String>> login(@RequestBody LoginRequest request) {
-        Map<String, String> response = authService.login(
+    public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
+        LoginResponse response = authService.login(
                 request.getLoginId(),
                 request.getPassword());
         return ResponseEntity.ok(response);
     }
 
+    @PostMapping("/refresh")
+    public ResponseEntity<TokenResponse> refresh(@Valid @RequestBody RefreshTokenRequest request) {
+        return ResponseEntity.ok(authService.refresh(request.getRefreshToken()));
+    }
+
     @GetMapping("/is-verified")
-    public ResponseEntity<Boolean> isVerified(@RequestParam String email) {
+    public ResponseEntity<Boolean> isVerified(@RequestParam @NotBlank @Email String email) {
         boolean verified = authService.isEmailVerified(email);
         return ResponseEntity.ok(verified);
     }
 
     @GetMapping("/check-id")
-    public ResponseEntity<Boolean> checkId(@RequestParam String loginId) {
+    public ResponseEntity<Boolean> checkId(@RequestParam @NotBlank @Size(max = 10) String loginId) {
         log.info("Checking loginId duplication: {}", loginId);
         boolean isDuplicated = authService.isLoginIdDuplicated(loginId);
         log.info("Check result for loginId {}: {}", loginId, isDuplicated);
@@ -63,8 +76,8 @@ public class AuthController {
     }
 
     @PostMapping("/check-nickname")
-    public ResponseEntity<?> checkNickname(@RequestBody Map<String, String> request) {
-        String nickname = request.get("nickname");
+    public ResponseEntity<?> checkNickname(@Valid @RequestBody NicknameCheckRequest request) {
+        String nickname = request.getNickname();
         log.info("Checking nickname duplication: {}", nickname);
         boolean isDuplicated = authService.isNicknameDuplicated(nickname);
         log.info("Check result for nickname {}: {}", nickname, isDuplicated);
@@ -96,7 +109,7 @@ public class AuthController {
     }
 
     @PostMapping("/send-verification")
-    public ResponseEntity<String> sendVerification(@RequestParam String email) {
+    public ResponseEntity<String> sendVerification(@RequestParam @NotBlank @Email String email) {
         authService.sendEmailVerification(email);
         return ResponseEntity.ok("인증 메일이 발송되었습니다.");
     }

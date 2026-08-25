@@ -46,7 +46,7 @@ public class Users {
     @Column(length=10, unique = true, nullable=false)
     private String nickname;
 
-    @Column(name="refresh_token")
+    @Column(name="refresh_token", length=64)
     private String refreshToken;
 
     @Column(name="last_login_time")
@@ -64,4 +64,28 @@ public class Users {
     @Column(name="updated_at")
     private LocalDateTime updatedAt;
 
+    public void updateNickname(String nickname) {
+        this.nickname = nickname;
+    }
+
+    public void updatePassword(String encodedPassword) {
+        this.password = encodedPassword;
+    }
+
+    public void updateProgressLevel(int progressLevel) {
+        this.clearProgressLevel = Math.max(this.clearProgressLevel, progressLevel);
+    }
+
+    public void login(String refreshTokenHash) {
+        this.refreshToken = refreshTokenHash;
+        this.lastLoginTime = LocalDateTime.now();
+    }
+
+    public void rotateRefreshToken(String refreshTokenHash) {
+        this.refreshToken = refreshTokenHash;
+    }
+
+    public void revokeRefreshToken() {
+        this.refreshToken = null;
+    }
 }
