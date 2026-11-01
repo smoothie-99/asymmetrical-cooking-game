@@ -210,6 +210,41 @@ class GameserverIntegrationTests {
         assertThat(user.getClearProgressLevel()).isEqualTo(2);
     }
 
+
+    @Test
+    void gameResultApiRejectsAnonymousAndPreservesHighestRank() throws Exception {
+        String accessToken = jwtUtil.createAccessToken(LOGIN_ID);
+        String perfectResult = "{\"stage\":1,\"achievementLevel\":2}";
+        String lowerResult = "{\"stage\":1,\"achievementLevel\":0}";
+
+        mockMvc.perform(post("/api/game/result")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(perfectResult))
+                .andExpect(status().isUnauthorized());
+
+        Users userAfterAnonymousRequest = userRepository.findByLoginId(LOGIN_ID).orElseThrow();
+        assertThat(userDishRepository.findByUser(userAfterAnonymousRequest)).isEmpty();
+
+        mockMvc.perform(post("/api/game/result")
+                        .header("Authorization", "Bearer " + accessToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(perfectResult))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(post("/api/game/result")
+                        .header("Authorization", "Bearer " + accessToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(lowerResult))
+                .andExpect(status().isOk());
+
+        Users updatedUser = userRepository.findByLoginId(LOGIN_ID).orElseThrow();
+        List<UserDish> records = userDishRepository.findByUser(updatedUser);
+
+        assertThat(records).hasSize(1);
+        assertThat(records.get(0).getAchievementLevel()).isEqualTo(2);
+        assertThat(updatedUser.getClearProgressLevel()).isEqualTo(2);
+    }
+
     private void createUser() {
         userRepository.saveAndFlush(Users.builder()
                 .loginId(LOGIN_ID)
