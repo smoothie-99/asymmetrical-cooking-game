@@ -32,7 +32,7 @@ import com.game.gameserver.service.UserService;
 @ActiveProfiles("test")
 class GameResultConcurrencyTest {
 
-    private static final String LOGIN_ID = "concurrent01";
+    private static final String LOGIN_ID = "conc01";
     private static final String PASSWORD = "Password1!";
     private static final int STAGE = 1;
     private static final int REQUEST_COUNT = 100;
@@ -68,7 +68,7 @@ class GameResultConcurrencyTest {
         userRepository.saveAndFlush(Users.builder()
                 .loginId(LOGIN_ID)
                 .password(passwordEncoder.encode(PASSWORD))
-                .email("concurrent01@example.com")
+                .email("conc01@example.com")
                 .nickname("동시성테스트")
                 .isEmailVerified(true)
                 .clearProgressLevel(1)
