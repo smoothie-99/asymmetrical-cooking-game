@@ -1,43 +1,39 @@
 services:
   db:
     image: postgres:16
-    container_name: gamedb
-    ports:
-    ports:
-      - "5433:5432"
+    restart: unless-stopped
     environment:
       POSTGRES_DB: ${DB_DATABASE}
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
     volumes:
-      - ./postgres_data:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_DATABASE}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
 
   app:
     build: .
-    container_name: spring_app
+    restart: unless-stopped
     ports:
-      - "8107:8080"
+      - "127.0.0.1:8107:8080"
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     env_file:
       - .env
     environment:
-      # DB URL 설정 (컨테이너 간 통신을 위해 유지)
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/${DB_DATABASE}
       SPRING_DATASOURCE_USERNAME: ${DB_USER}
       SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/actuator/health | grep -q '\"status\":\"UP\"'"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
 
-
-
-  jenkins:
-    image: jenkins/jenkins:lts
-    container_name: jenkins
-    restart: always
-    user: root
-    ports:
-      - "8108:8080"
-    environment:
-      - JENKINS_OPTS=--prefix=/jenkins
-    volumes:
-      - /home/ubuntu/jenkins_home:/var/jenkins_home
-      - /var/run/docker.sock:/var/run/docker.sock
+volumes:
+  postgres_data:

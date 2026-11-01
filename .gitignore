@@ -637,6 +637,8 @@ FodyWeavers.xsd
 # 환경 변수 및 설정 파일
 .env
 .env.*
+!.env.example
+!Backend/gameserver/.env.example
 # 인증서 및 키 파일
 *.key
 *.crt

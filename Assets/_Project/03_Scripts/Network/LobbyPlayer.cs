@@ -134,6 +134,7 @@ public class LobbyPlayer : NetworkBehaviour
     // [신규] 클리어 라운드 데이터 동기화 요청
     public void SetMaxClearedRound(int round)
     {
+        round = Mathf.Clamp(round, 0, 12);
         if (Object.HasStateAuthority)
         {
             MaxClearedRound = round;
@@ -147,12 +148,13 @@ public class LobbyPlayer : NetworkBehaviour
     [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
     private void RPC_SetMaxClearedRound(int round)
     {
-        MaxClearedRound = round;
+        MaxClearedRound = Mathf.Clamp(round, 0, 12);
     }
 
     // 포지션 선택 요청 (권한이 있는 나 자신만 호출 가능)
     public void SetRole(int role)
     {
+        if (role < 0 || role > 2) return;
         if (Object.HasStateAuthority)
         {
             SelectedRole = role;
@@ -238,9 +240,17 @@ public class LobbyPlayer : NetworkBehaviour
 
     // [추가] 방장에게 특정 스테이지 선택을 요청하는 RPC
     [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
-    public void RPC_RequestStageSelection(int stageNumber)
+    public void RPC_RequestStageSelection(int stageNumber, RpcInfo info = default)
     {
         if (SystemManager.Instance == null) return;
+        if (stageNumber < 1 || stageNumber > 12) return;
+
+        LobbyPlayer requester = Get(info.Source);
+        if (requester == null || requester.MaxClearedRound < stageNumber - 1)
+        {
+            Debug.LogWarning($"[RPC] 해금되지 않은 스테이지 요청을 거부했습니다: {stageNumber}");
+            return;
+        }
         
         SystemManager.Instance.SelectedStage = stageNumber;
         SystemManager.Instance.ChangeMetaState(MetaState.ReadyConfirmation);
@@ -254,6 +264,7 @@ public class LobbyPlayer : NetworkBehaviour
     {
         // 이 코드는 방장의 화면에서 실행됩니다.
         if (SystemManager.Instance == null) return;
+        if (newState < 0 || newState > 4) return;
 
         switch (newState)
         {

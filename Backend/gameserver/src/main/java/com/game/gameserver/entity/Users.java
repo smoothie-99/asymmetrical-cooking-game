@@ -46,8 +46,8 @@ public class Users {
     @Column(length=10, unique = true, nullable=false)
     private String nickname;
 
-    @Column(name="refresh_token")
-    private String refreshToken;
+    @Column(name="refresh_token_hash", length = 64)
+    private String refreshTokenHash;
 
     @Column(name="last_login_time")
     private LocalDateTime lastLoginTime;

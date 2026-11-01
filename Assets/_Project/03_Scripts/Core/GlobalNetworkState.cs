@@ -129,7 +129,7 @@ public class GlobalNetworkState : NetworkBehaviour
     [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
     public void RPC_RequestMetaStateChange(MetaState newState)
     {
-        if (this.Object != null && this.Object.IsValid)
+        if (this.Object != null && this.Object.IsValid && IsAllowedMetaTransition(CurrentMetaState, newState))
         {
             CurrentMetaState = newState;
             Debug.Log($"🌐 [GlobalNetworkState] RPC processed: MetaState -> {newState}");
@@ -140,9 +140,20 @@ public class GlobalNetworkState : NetworkBehaviour
     /// [추가] 클라이언트(비방장)가 요리 완성 판정을 방장에게 위임 제출합니다.
     /// </summary>
     [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
-    public void RPC_FinishCookingSession(bool success, string message, CookingOutcome outcome, FeedbackType feedbackType)
+    public void RPC_FinishCookingSession(
+        bool success,
+        string message,
+        CookingOutcome outcome,
+        FeedbackType feedbackType,
+        RpcInfo info = default)
     {
-        if (this.Object != null && this.Object.IsValid)
+        LobbyPlayer requester = LobbyPlayer.Get(info.Source);
+        bool isCookingMaster = requester != null
+            && requester.SelectedRole == (int)NetworkLauncher.PlayerJob.CookingMaster;
+
+        if (this.Object != null && this.Object.IsValid
+            && CurrentMetaState == MetaState.Cooking
+            && isCookingMaster)
         {
             if (GamePlayManager.Instance != null)
             {
@@ -168,7 +179,32 @@ public class GlobalNetworkState : NetworkBehaviour
     [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
     public void RPC_RequestPause(bool pause)
     {
-        SetPauseInternal(pause);
+        if (CurrentMetaState == MetaState.Cooking)
+            SetPauseInternal(pause);
+    }
+
+    private static bool IsAllowedMetaTransition(MetaState current, MetaState next)
+    {
+        if (!Enum.IsDefined(typeof(MetaState), next)) return false;
+        if (current == next) return true;
+
+        return current switch
+        {
+            MetaState.None => next == MetaState.Lobby,
+            MetaState.Lobby => next == MetaState.StageSelection,
+            MetaState.StageSelection => next == MetaState.Lobby || next == MetaState.ReadyConfirmation,
+            MetaState.ReadyConfirmation => next == MetaState.Lobby
+                || next == MetaState.StageSelection
+                || next == MetaState.OrderDialogue,
+            MetaState.OrderDialogue => next == MetaState.Cooking || next == MetaState.Lobby,
+            MetaState.Cooking => next == MetaState.Feedback || next == MetaState.Lobby,
+            MetaState.Feedback => next == MetaState.Result || next == MetaState.Lobby,
+            MetaState.Result => next == MetaState.Lobby
+                || next == MetaState.StageSelection
+                || next == MetaState.ReadyConfirmation
+                || next == MetaState.OrderDialogue,
+            _ => false
+        };
     }
 
     /// <summary>

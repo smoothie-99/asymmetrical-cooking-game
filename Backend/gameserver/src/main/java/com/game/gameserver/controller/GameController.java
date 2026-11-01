@@ -11,6 +11,7 @@ import com.game.gameserver.dto.GameResultRequest;
 import com.game.gameserver.service.UserService;
 
 import lombok.RequiredArgsConstructor;
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/game")
@@ -22,7 +23,7 @@ public class GameController {
     @PostMapping("/result")
     public ResponseEntity<String> saveGameResult(
             @AuthenticationPrincipal String loginId,
-            @RequestBody GameResultRequest request) {
+            @Valid @RequestBody GameResultRequest request) {
         
         userService.saveDishResult(loginId, request.getStage(), request.getAchievementLevel());
         return ResponseEntity.ok("게임 결과가 도감에 저장되었습니다.");

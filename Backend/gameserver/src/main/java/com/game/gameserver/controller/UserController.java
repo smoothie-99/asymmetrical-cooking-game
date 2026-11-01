@@ -4,6 +4,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.game.gameserver.dto.ProfileUpdateRequest;
+import com.game.gameserver.dto.PasswordChangeRequest;
 import com.game.gameserver.dto.UserDishResponse;
 import com.game.gameserver.dto.UserResponse;
 import com.game.gameserver.service.UserService;
@@ -20,6 +21,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.PostMapping;
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/users")
@@ -37,10 +39,18 @@ public class UserController {
 
     @PatchMapping("/me")
     public ResponseEntity<UserResponse> updateProfile(@AuthenticationPrincipal String loginId,
-            @RequestBody ProfileUpdateRequest request) {
+            @Valid @RequestBody ProfileUpdateRequest request) {
 
         UserResponse updatedUser = userService.updateProfile(loginId, request);
         return ResponseEntity.ok(updatedUser);
+    }
+
+    @PatchMapping("/me/password")
+    public ResponseEntity<String> changePassword(
+            @AuthenticationPrincipal String loginId,
+            @Valid @RequestBody PasswordChangeRequest request) {
+        userService.changePassword(loginId, request);
+        return ResponseEntity.ok("비밀번호가 변경되었습니다.");
     }
 
     @GetMapping("/me/collection")
